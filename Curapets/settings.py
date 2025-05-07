@@ -30,6 +30,7 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt',
     'drf_yasg',
     'user',
+    'pets',
     'appointments',
 ]
 
@@ -116,6 +117,17 @@ SIMPLE_JWT = {
 }
 
 
+SWAGGER_SETTINGS = {
+    'SECURITY_DEFINITIONS': {
+        'Bearer': {
+            'type': 'apiKey',
+            'in': 'header',
+            'name': 'Authorization',
+            'description': "Enter **'Bearer &lt;your token&gt;'**",
+        }
+    },
+    'USE_SESSION_AUTH': False,  # Optional: if you don't want login/logout buttons
+}
 
 
 

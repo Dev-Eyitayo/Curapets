@@ -35,8 +35,9 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     def validate(self, attrs):
         data = super().validate(attrs)
 
-        # Optionally include additional user data in the response
+        # send user data in the response
         data.update({
+            'id': str(self.user.id),
             'email': self.user.email,
             'firstname': self.user.firstname,
             'lastname': self.user.lastname,
