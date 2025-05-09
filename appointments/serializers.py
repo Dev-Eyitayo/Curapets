@@ -10,7 +10,7 @@ class AppointmentSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Appointment
-        fields = ['id', 'user', 'doctor', 'date', 'time', 'description', 'status', 'created_at']
+        fields = ['id', 'pet', 'user', 'doctor', 'date', 'time', 'description', 'status', 'created_at']
         read_only_fields = ['created_at']
 
     def update(self, instance, validated_data):

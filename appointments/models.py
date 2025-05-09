@@ -1,6 +1,6 @@
 from django.db import models
 from django.conf import settings
-
+from pets.models import Pet
 
 class Appointment(models.Model):
     STATUS_CHOICES = [
@@ -20,6 +20,7 @@ class Appointment(models.Model):
         on_delete=models.CASCADE,
         related_name='doctor_appointments'
     )
+    pet = models.ForeignKey(Pet, on_delete=models.CASCADE, related_name='appointments', null=True, blank=True)
     date = models.DateField()
     time = models.TimeField()
     description = models.TextField(blank=True)
