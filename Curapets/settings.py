@@ -29,6 +29,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework_simplejwt',
     'multiselectfield',
+    'django_json_widget',
     'drf_yasg',
     'user',
     'doctor',

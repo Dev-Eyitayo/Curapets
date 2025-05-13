@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth import get_user_model
 from multiselectfield import MultiSelectField
+from django.core.exceptions import ValidationError
 
 User = get_user_model()
 
@@ -19,25 +20,44 @@ class DoctorProfile(models.Model):
     bio = models.TextField()
     specialization = models.CharField(max_length=100)
     available_days = MultiSelectField(choices=DAYS_OF_WEEK)
-    available_times = models.JSONField(default=list)  # Store as a list of time slots for each day
+    available_times = models.JSONField(default=dict)  # Format: {"Monday": [{"from": "09:00", "to": "12:00"}]}
     years_experience = models.PositiveIntegerField()
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"{self.doctor.get_full_name()} - {self.specialization}"
+        return f"{self.doctor.firstname} {self.doctor.lastname} - {self.specialization}"
 
     def set_available_times(self, day, times):
         """
-        Set available times for a given day. 
-        Times should be a list of dictionaries with 'from' and 'to' times.
-        Example: [{'from': '09:00', 'to': '12:00'}, {'from': '14:00', 'to': '17:00'}]
+        Sets or replaces available time slots for a given day.
+        Parameters:
+        - day: string (e.g., 'Monday')
+        - times: list of dicts (e.g., [{'from': '09:00', 'to': '12:00'}])
         """
-        # Convert times to desired format (for validation or any custom handling)
-        available_times = {day: times}
-        self.available_times.append(available_times)  # Append to existing data
+        if day not in dict(self.DAYS_OF_WEEK):
+            raise ValueError(f"{day} is not a valid day of the week.")
+        if not isinstance(times, list):
+            raise ValueError("Times must be a list of dictionaries with 'from' and 'to' keys.")
+        for slot in times:
+            if not isinstance(slot, dict) or 'from' not in slot or 'to' not in slot:
+                raise ValueError("Each time slot must be a dictionary with 'from' and 'to' keys.")
+        
+        self.available_times[day] = times
+        self.save()
 
     def get_available_times(self, day):
         """
-        Get available times for a specific day.
+        Returns a list of available time slots for a specific day, or an empty list if none set.
         """
-        return [times for times in self.available_times if day in times]
+        return self.available_times.get(day, [])
+
+    def clean(self):
+        """
+        Ensure consistency between available_days and available_times.
+        - No time slots should be provided for days not in available_days.
+        """
+        invalid_days = [day for day in self.available_times if day not in self.available_days]
+        if invalid_days:
+            raise ValidationError(
+                f"The following days have time slots set but are not marked as available_days: {', '.join(invalid_days)}"
+            )
