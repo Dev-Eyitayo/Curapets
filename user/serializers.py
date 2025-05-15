@@ -1,21 +1,30 @@
 from rest_framework import serializers
 from .models import CustomUser
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+
+
+ALLOWED_SIGNUP_ROLES = ['user', 'doctor'] 
+
 class SignUpSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, min_length=8)
+    role = serializers.ChoiceField(choices=ALLOWED_SIGNUP_ROLES, required=False)
 
     class Meta:
         model = CustomUser
         fields = ['email', 'firstname', 'lastname', 'password', 'role']
 
     def create(self, validated_data):
-       
+        role = validated_data.get('role', 'user')
+
+        if role not in ALLOWED_SIGNUP_ROLES:
+            raise serializers.ValidationError({"role": "Invalid role selection."})
+
         return CustomUser.objects.create_user(
             email=validated_data['email'],
             firstname=validated_data['firstname'],
             lastname=validated_data['lastname'],
             password=validated_data['password'],
-            role=validated_data.get('role', 'user')  
+            role=role
         )
 
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
