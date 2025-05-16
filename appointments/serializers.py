@@ -16,33 +16,27 @@ class AppointmentSerializer(serializers.ModelSerializer):
         read_only_fields = ['created_at']
 
     def validate(self, data):
-        """
-        Custom validation to ensure the appointment time falls within the available time slots of the doctor.
-        """
         doctor = data['doctor']
         appointment_date = data['date']
         appointment_time = data['time']
         
-        # Fetch the doctor's profile and available times
         doctor_profile = doctor.profile 
         available_times = doctor_profile.available_times
-        
-        # Check if the doctor is available on the selected day
-        weekday = appointment_date.strftime('%A')  # Get the weekday name (e.g., "Monday")
+        weekday = appointment_date.strftime('%A')
 
-        # Ensure the selected day is in the available days for the doctor
         if weekday not in doctor_profile.available_days:
             raise serializers.ValidationError(f"Doctor is not available on {weekday}.")
+
+        available_slots = available_times.get(weekday, [])
         
-        # Check if the selected time is within the available times for that day
-        available_slots = [slot for slot in available_times if weekday in slot]
-
         if not available_slots:
-            raise serializers.ValidationError(f"Doctor has no available times on {weekday}.")
+            raise serializers.ValidationError(f"Doctor has no available time slots on {weekday}.")
 
-        # Find a matching available time slot
         is_valid_time = False
         for slot in available_slots:
+            if not isinstance(slot, dict) or 'from' not in slot or 'to' not in slot:
+                raise serializers.ValidationError(f"Invalid time slot format: {slot}")
+            
             slot_from = datetime.strptime(slot['from'], '%H:%M').time()
             slot_to = datetime.strptime(slot['to'], '%H:%M').time()
 
@@ -51,7 +45,9 @@ class AppointmentSerializer(serializers.ModelSerializer):
                 break
 
         if not is_valid_time:
-            raise serializers.ValidationError(f"Selected time {appointment_time} is not within the doctor's available times on {weekday}.")
+            raise serializers.ValidationError(
+                f"Selected time {appointment_time} is not within available slots on {weekday}."
+            )
 
         return data
 
