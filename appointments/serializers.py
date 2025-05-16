@@ -20,7 +20,7 @@ class AppointmentSerializer(serializers.ModelSerializer):
         appointment_date = data['date']
         appointment_time = data['time']
         
-        doctor_profile = doctor.profile 
+        doctor_profile = doctor.profile
         available_times = doctor_profile.available_times
         weekday = appointment_date.strftime('%A')
 

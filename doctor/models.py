@@ -20,8 +20,9 @@ class DoctorProfile(models.Model):
     bio = models.TextField()
     specialization = models.CharField(max_length=100)
     available_days = MultiSelectField(choices=DAYS_OF_WEEK)
-    available_times = models.JSONField(default=dict)  # Format: {"Monday": [{"from": "09:00", "to": "12:00"}]}
+    available_times = models.JSONField(default=dict)  # Format: {"Monday": [{"from": "09:00", "to": "4:00"}]}
     years_experience = models.PositiveIntegerField()
+    address = models.CharField(max_length=255)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

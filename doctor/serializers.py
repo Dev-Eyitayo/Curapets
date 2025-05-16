@@ -9,7 +9,7 @@ class DoctorProfileSerializer(serializers.ModelSerializer):
         model = DoctorProfile
         fields = [
             'doctor', 'bio', 'specialization',
-            'available_days', 'available_times',
+            'available_days', 'available_times', 'address'
             'years_experience', 'created_at'
         ]
         read_only_fields = ['created_at']
