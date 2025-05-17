@@ -8,7 +8,7 @@ from django.conf.urls.static import static
 
 schema_view = get_schema_view(
     openapi.Info(
-        title="Pet Treatment API",
+        title="Curapets API",
         default_version='v1',
         description="API documentation for the Curapets Backend System",
         terms_of_service="https://www.example.com/terms/",
@@ -25,10 +25,9 @@ urlpatterns = [
     path('api/user/', include('user.urls')),
     path('api/', include('doctor.urls')),
     path('api/', include('appointments.urls')), 
-    path('api/', include('pets.urls')), 
+    path('api/', include('pets.urls')),     
 
     # Swagger & Redoc URLs
-    # path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
     path('redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
     path('swagger.json', schema_view.without_ui(cache_timeout=0), name='schema-json'),
 ]+ static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
