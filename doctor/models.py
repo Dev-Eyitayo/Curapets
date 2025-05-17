@@ -5,6 +5,46 @@ from django.core.exceptions import ValidationError
 
 User = get_user_model()
 
+
+
+def certificate_upload_path(instance, filename):
+    return f'doctor_certificates/{instance.application.user.id}/{filename}'
+
+class DoctorApplication(models.Model):
+    STATUS_CHOICES = (
+        ('pending', 'Pending'),
+        ('approved', 'Approved'),
+        ('rejected', 'Rejected'),
+    )
+
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='doctor_application')
+    bio = models.TextField()
+    specialization = models.CharField(max_length=100)
+    certificates = models.FileField(upload_to=certificate_upload_path)
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='pending')
+    submitted_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.user.email} - {self.status}"
+
+
+
+class Certificate(models.Model):
+    application = models.ForeignKey(DoctorApplication, related_name='certificate_files', on_delete=models.CASCADE)
+    file = models.FileField(upload_to=certificate_upload_path)
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Certificate for {self.application.user.email}"
+
+
+
+
+
+
+
+
+
 class DoctorProfile(models.Model):
     DAYS_OF_WEEK = [
         ('Monday', 'Monday'),

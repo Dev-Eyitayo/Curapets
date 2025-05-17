@@ -1,6 +1,49 @@
 from rest_framework import serializers
-from .models import DoctorProfile
+from .models import DoctorProfile, DoctorApplication, Certificate
 import datetime
+from django.core.exceptions import ValidationError
+import os
+
+def validate_file_extension(file):
+    ext = os.path.splitext(file.name)[1]
+    valid_extensions = ['.pdf', '.jpg', '.jpeg', '.png']
+    if ext.lower() not in valid_extensions:
+        raise ValidationError('Unsupported file extension.')
+
+class CertificateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Certificate
+        fields = ['id', 'file', 'uploaded_at']
+        read_only_fields = ['id', 'uploaded_at']
+
+class DoctorApplicationSerializer(serializers.ModelSerializer):
+    certificate_files = CertificateSerializer(many=True, read_only=True)
+    certificates = serializers.ListField(
+        child=serializers.FileField(validators=[validate_file_extension]),
+        write_only=True
+    )
+
+    class Meta:
+        model = DoctorApplication
+        fields = ['user', 'bio', 'specialization', 'certificates', 'certificate_files', 'status', 'submitted_at']
+        read_only_fields = ['status', 'submitted_at', 'certificate_files', 'user']
+
+    def create(self, validated_data):
+        certificate_files = validated_data.pop('certificates')
+        user = self.context['request'].user
+
+        if hasattr(user, 'doctor_application'):
+            raise serializers.ValidationError("Application already submitted.")
+
+        application = DoctorApplication.objects.create(user=user, **validated_data)
+
+        for file in certificate_files:
+            # Each file has already passed validation at this point
+            Certificate.objects.create(application=application, file=file)
+
+        return application
+
+
 
 class DoctorProfileSerializer(serializers.ModelSerializer):
     available_times = serializers.JSONField()
@@ -9,7 +52,7 @@ class DoctorProfileSerializer(serializers.ModelSerializer):
         model = DoctorProfile
         fields = [
             'doctor', 'bio', 'specialization',
-            'available_days', 'available_times', 'address'
+            'available_days', 'available_times', 'address',
             'years_experience', 'created_at'
         ]
         read_only_fields = ['created_at']

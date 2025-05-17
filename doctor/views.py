@@ -2,8 +2,48 @@
 
 from rest_framework import viewsets, permissions, status
 from rest_framework.exceptions import PermissionDenied
-from .models import DoctorProfile
-from .serializers import DoctorProfileSerializer
+from .models import DoctorProfile, DoctorApplication
+from .serializers import DoctorProfileSerializer, DoctorApplicationSerializer
+from django.contrib.auth import get_user_model
+from rest_framework.response import Response
+from rest_framework.decorators import action
+
+
+User = get_user_model()
+
+class DoctorApplicationViewSet(viewsets.ModelViewSet):
+    queryset = DoctorApplication.objects.all()
+    serializer_class = DoctorApplicationSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        if self.request.user.is_staff:
+            return DoctorApplication.objects.all()
+        return DoctorApplication.objects.filter(user=self.request.user)
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+    @action(detail=True, methods=['post'], permission_classes=[permissions.IsAdminUser])
+    def review(self, request, pk=None):
+        application = self.get_object()
+        status_value = request.data.get('status')
+
+        if status_value not in ['approved', 'rejected']:
+            return Response({"detail": "Invalid status."}, status=400)
+
+        application.status = status_value
+        application.save()
+
+        if status_value == 'approved':
+            application.user.role = 'doctor'
+            application.user.save()
+
+        return Response({"detail": f"Application {status_value} successfully."})
+
+
+
+
 
 class DoctorProfileViewSet(viewsets.ModelViewSet):
     queryset = DoctorProfile.objects.all()
