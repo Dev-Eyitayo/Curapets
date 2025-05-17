@@ -8,7 +8,7 @@ User = get_user_model()
 
 
 def certificate_upload_path(instance, filename):
-    return f'doctor_certificates/{instance.application.user.id}/{filename}'
+    return f'doctor_certificates/{instance.user.id}/{filename}'
 
 class DoctorApplication(models.Model):
     STATUS_CHOICES = (
@@ -23,6 +23,19 @@ class DoctorApplication(models.Model):
     certificates = models.FileField(upload_to=certificate_upload_path)
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='pending')
     submitted_at = models.DateTimeField(auto_now_add=True)
+    
+    
+    def save(self, *args, **kwargs):
+        # Check if status changed to approved
+        if self.pk:  # if object already exists in DB
+            orig = DoctorApplication.objects.get(pk=self.pk)
+            if orig.status != 'approved' and self.status == 'approved':
+                # Update user role here
+                user = self.user
+                user.role = 'doctor'  
+                user.save()
+
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.user.email} - {self.status}"
