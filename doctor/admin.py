@@ -1,4 +1,4 @@
-# admin.py
+
 from django.contrib import admin
 from .models import DoctorProfile, DoctorApplication
 from .admin_forms import DoctorProfileAdminForm
