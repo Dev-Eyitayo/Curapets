@@ -7,7 +7,7 @@ from .serializers import PetSerializer
 class PetListCreateView(generics.GenericAPIView):
     queryset = Pet.objects.all()
     serializer_class = PetSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
         user = self.request.user
@@ -28,7 +28,7 @@ class PetListCreateView(generics.GenericAPIView):
 class PetDetailView(generics.GenericAPIView):
     queryset = Pet.objects.all()
     serializer_class = PetSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
         return Pet.objects.filter(owner=self.request.user)
