@@ -25,8 +25,8 @@ class DoctorApplicationSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = DoctorApplication
-        fields = ['user', 'bio', 'specialization', 'certificates', 'certificate_files', 'status', 'submitted_at']
-        read_only_fields = ['status', 'submitted_at', 'certificate_files', 'user']
+        fields = ['id', 'user', 'bio', 'specialization', 'certificates', 'certificate_files', 'status', 'submitted_at']
+        read_only_fields = ['id', 'status', 'submitted_at', 'certificate_files', 'user']
 
     def create(self, validated_data):
         certificate_files = validated_data.pop('certificates')

@@ -7,6 +7,7 @@ from .serializers import DoctorProfileSerializer, DoctorApplicationSerializer
 from django.contrib.auth import get_user_model
 from rest_framework.response import Response
 from rest_framework.decorators import action
+from rest_framework.exceptions import ValidationError
 
 
 User = get_user_model()
@@ -22,8 +23,22 @@ class DoctorApplicationViewSet(viewsets.ModelViewSet):
         return DoctorApplication.objects.filter(user=self.request.user)
 
     def perform_create(self, serializer):
+        # Check if the user already has a doctor application
+        if DoctorApplication.objects.filter(user=self.request.user).exists():
+            raise ValidationError("You have already submitted an application.")
         serializer.save(user=self.request.user)
+   
+    
+    def update(self, request, *args, **kwargs):
+        if not request.user.is_staff:
+            raise PermissionDenied("You cannot update a doctor application.")
+        return super().update(request, *args, **kwargs)
 
+    def partial_update(self, request, *args, **kwargs):
+        if not request.user.is_staff:
+            raise PermissionDenied("You cannot update a doctor application.")
+        return super().partial_update(request, *args, **kwargs)
+    
     @action(detail=True, methods=['post'], permission_classes=[permissions.IsAdminUser])
     def review(self, request, pk=None):
         application = self.get_object()
