@@ -29,6 +29,7 @@ class CustomTokenObtainPairView(TokenObtainPairView):
 class PasswordResetRequestView(generics.GenericAPIView):
     authentication_classes = []
     permission_classes = [AllowAny]
+    serializer_class = PasswordResetSerializer
 
     def post(self, request):
         try:
